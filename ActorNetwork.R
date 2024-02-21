@@ -43,13 +43,8 @@ for (movie in unique(cast_edges$Source)){
     t3 <- Sys.time() 
     
     actr_edges <- rbind(actr_edges,t(actor_pairs))
-    
   
     t4 <- Sys.time() 
-    
-    
-    
-
     
     i1 <- i1 + t2-t1
     i2 <- i2 + t3-t2
@@ -61,9 +56,10 @@ for (movie in unique(cast_edges$Source)){
       print(paste("i1: ", i1, " i2: ", i2, " i3: ", i3, " total movies processed: ", t))
     }
     
-    
   }
   
 }
  
+write.matrix(actr_edges,file="actor_edges.csv")
+
 
