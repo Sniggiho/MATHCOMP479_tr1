@@ -13,16 +13,16 @@ movies <- read_csv("~/MATHCOMP479/tr1/movienetwork/vertex-movies.csv")
 cast_edges <- read_csv("~/MATHCOMP479/tr1/movienetwork/edge-cast.csv")
 
 # processing  to include only the last 10 years
-movies <- movies %>% filter(Year >= 2014)
-cast_edges <- cast_edges %>% filter(Year >= 2014)
-actors_after_2014 <- unique(cast_edges$Target)
+movies <- movies %>% filter(Year >= 2007)
+cast_edges <- cast_edges %>% filter(Year >= 2007)
+actors_after_2007 <- unique(cast_edges$Target)
   
 
 # creating links between actors
 
-actr_edges <- c("actor 1", "actor 2")
+actr_edge_list <- list()
 
-t <- 0
+t <- 1
 
 i1 <- 0
 i2 <- 0
@@ -32,8 +32,8 @@ for (movie in unique(cast_edges$Source)){
   
   t1 <- Sys.time()  
   
-  actors_in_movie <- (cast_edges %>% filter(Source==movie) %>% select(Target))[[1]]
-  
+  actors_in_movie <- cast_edges$Target[which(cast_edges$Source==movie)]
+    
   t2 <- Sys.time() 
   
   if (length(actors_in_movie )>= 2){
@@ -42,7 +42,7 @@ for (movie in unique(cast_edges$Source)){
     
     t3 <- Sys.time() 
     
-    actr_edges <- rbind(actr_edges,t(actor_pairs))
+    actr_edge_list[[t]] <- t(actor_pairs)
   
     t4 <- Sys.time() 
     
@@ -50,16 +50,17 @@ for (movie in unique(cast_edges$Source)){
     i2 <- i2 + t3-t2
     i3 <- i3 + t4-t3
     
-    t <- t+1
     
-    if (t%%10==0){
+    if (t%%1000==0){
       print(paste("i1: ", i1, " i2: ", i2, " i3: ", i3, " total movies processed: ", t))
     }
+    
+    t <- t+1
     
   }
   
 }
- 
-write.matrix(actr_edges,file="actor_edges.csv")
 
+actr_edge_mat <- do.call(rbind, actr_edge_list)
+actr_edges <- c(t(actr_edge_mat))
 
