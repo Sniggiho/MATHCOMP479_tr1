@@ -61,6 +61,12 @@ for (movie in unique(cast_edges$Source)){
   
 }
 
-actr_edge_mat <- do.call(rbind, actr_edge_list)
-actr_edges <- c(t(actr_edge_mat))
+actr_edges <- do.call(rbind, actr_edge_list)
+actr_edges_vctr <- c(t(actr_edge_mat))
+
+
+
+write_csv(as.data.frame(actr_edges), "actr_edges.csv")
+write_csv(as.data.frame(actr_edges), "actr_edges.csv")
+
 
