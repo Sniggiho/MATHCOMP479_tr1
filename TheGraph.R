@@ -24,6 +24,10 @@ while (num_sig_comps > 1) {
   min_weight <- min_weight + 1
 }
 
+edges <- uncount(as.data.frame(as_edgelist(pruned_graph)), E(pruned_graph)$weight)
+
+write_csv(as.data.frame(edges), "smaller_actr_edges.csv")
+
 gf_point(unlist(num_sig_comps_hist)~1:13, xlab="Minimum Edge Weight", ylab="Number of Non-singleton Components")
 gf_point(log(unlist(num_sig_comps_hist))~log(1:13),xlab="Log of Minimum Edge Weight", ylab="Log of Number of Non-singleton Components")
           
@@ -58,17 +62,75 @@ alpha
 ################################################################################
 
 
-comps <- components(actr_actr_pruned)
+################################ figuring out fraction of collaborative actors
+min_weight <- 1
+pruned_graph <- igraph::delete_edges(actr_actr_graph, which(E(actr_actr_graph)$weight < min_weight))
+
+actrs_in_collabs_n_times <- rep(NA,13)
+actrs_starring_n_times <- rep(NA,13)
 
 
-which(components(actr_actr_pruned)$csize>2)
+for (min_weight in 1:13){
+  pruned_graph <- igraph::delete_edges(actr_actr_graph, which(E(actr_actr_graph)$weight < min_weight))
+  
+  actrs_in_collabs_n_times[min_weight] <- sum(components(pruned_graph)$csize[which(components(pruned_graph)$csize>1)])
+  actrs_starring_n_times[min_weight] <- sum(table(cast_edges$Target) >= min_weight) 
+}
 
-big_clump <- lapply(seq_along(comps$csize)[comps$csize > 3], function(x) 
-  V(actr_actr_pruned)$name[comps$membership %in% x])[[1]]
+actrs_starring_n_times
+actrs_in_collabs_n_times
+
+
+gf_point(actrs_in_collabs_n_times/actrs_starring_n_times ~ 1:13, xlab="Number of movies, n", ylab = "Actors in an n-time repeat collab / actors starring at least n times")
+gf_point(actrs_starring_n_times ~ 1:13, xlab = "Number of Movies", ylab = "Number of Actors", title = "Number of actor's who've starred in at least x movies for x in 1:13")
+
+
+kmin = 2
+data_fit = actrs_in_collabs_n_times[kmin:13]
+num_points = length(data_fit)
+data_sum = sum(log(data_fit/(kmin -1/2)))
+
+alpha = 1 + num_points/data_sum
+
+alpha
+
+###############################################################################
+
+
+
+min_weight <- 8
+pruned_graph <- igraph::delete_edges(actr_actr_graph, which(E(actr_actr_graph)$weight < min_weight))
+ecount(pruned_graph)
+
+sum(components(pruned_graph)$csize[which(components(pruned_graph)$csize>1)])
+sum(table(cast_edges$Target) >= 8)
+
+cast_edges %>% filter(Target == "a17051")
+actors %>% filter(Id == "a17051")
+
+max(table(cast_edges$Target))
+
+x
+table(x)
+sum(table(x)>=1)
+
+comps <- components(pruned_graph)
+compsizes <- comps$csize[which(comps$csize>1)]
+compsizes
+
+relevant_actrs <- actors %>% filter(Id %in% V(pruned_graph)$name[which(degree(pruned_graph)>1)])
+write_csv(relevant_actrs, "relevant_actrs.csv")
+
+
+big_clump <- lapply(seq_along(comps$csize)[comps$csize >1], function(x) 
+  V(pruned_graph)$name[comps$membership %in% x])
 
 big_clump
 
-actors$Label[actors$Id %in% big_clump]
+for (i in 1:7){
+  print(actors$Label[actors$Id %in% big_clump[[i]]])
+  print("--")
+}
 
 movies_of_big_clumpers <- list()
 for (i in 1:length(big_clump)){
@@ -112,5 +174,5 @@ hist(sizes(actr_communities))
 testg <- make_graph(c("a","b","b","c","c","a","a","b","d","e"), directed = FALSE)
 E(testg)$weight <- 1
 testg <- igraph::simplify(testg, edge.attr.comb = list(weight="sum"))
-V(testg)$name
+degree(testg)
 igraph::components(testg)

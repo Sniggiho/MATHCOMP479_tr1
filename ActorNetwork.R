@@ -15,8 +15,10 @@ cast_edges <- read_csv("~/MATHCOMP479/tr1/movienetwork/edge-cast.csv")
 # processing  to include only the last 10 years
 movies <- movies %>% filter(Year >= 2007)
 cast_edges <- cast_edges %>% filter(Year >= 2007)
-actors_after_2007 <- unique(cast_edges$Target)
-  
+
+actors_after_2007 <- actors %>% filter(Id %in% cast_edges$Target)
+actors_after_2007
+write_csv(actors_after_2007, "actrs_after_2007.csv")
 
 # creating links between actors
 
